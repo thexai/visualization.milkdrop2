@@ -26,10 +26,10 @@ class CVisualizationMilkdrop2 : public kodi::addon::CAddonBase,
                                 public kodi::addon::CInstanceVisualization
 {
 public:
-  ~CVisualizationMilkdrop2() override;
+  ~CVisualizationMilkdrop2() override = default;
 
-  ADDON_STATUS Create() override;
-  void Stop() override;
+  bool Init() override;
+  void DeInit() override;
   void AudioData(const float* audioData, size_t audioDataLength) override;
   void Render() override;
   bool GetPresets(std::vector<std::string>& presets) override;
@@ -42,23 +42,23 @@ public:
   bool LockPreset(bool lockUnlock) override;
 };
 
-ADDON_STATUS CVisualizationMilkdrop2::Create()
+bool CVisualizationMilkdrop2::Init()
 {
   swprintf(g_plugin.m_szPluginsDirPath, L"%hs\\resources\\", kodi::addon::GetAddonPath().c_str());
 
   if (FALSE == g_plugin.PluginPreInitialize(0, 0))
-    return ADDON_STATUS_UNKNOWN;
+    return false;
 
   if (FALSE == g_plugin.PluginInitialize(
                    static_cast<ID3D11DeviceContext*>(Device()), X(), Y(), Width(), Height(),
                    static_cast<double>(Width()) / static_cast<double>(Height())))
-    return ADDON_STATUS_UNKNOWN;
+    return false;
 
   IsInitialized = true;
-  return ADDON_STATUS_OK;
+  return true;
 }
 
-void CVisualizationMilkdrop2::Stop()
+void CVisualizationMilkdrop2::DeInit()
 {
   if (IsInitialized)
   {
@@ -168,15 +168,6 @@ int CVisualizationMilkdrop2::GetActivePreset()
     return CurrentPreset;
   }
   return -1;
-}
-
-//-- Destroy-------------------------------------------------------------------
-// Do everything before unload of this add-on
-// !!! Add-on master function !!!
-//-----------------------------------------------------------------------------
-CVisualizationMilkdrop2::~CVisualizationMilkdrop2()
-{
-  Stop();
 }
 
 ADDONCREATOR(CVisualizationMilkdrop2) // Don't touch this!
