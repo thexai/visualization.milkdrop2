@@ -1,19 +1,19 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.18)
 project(vis_milk2)
 
-enable_language(ASM_NASM)
+include_directories(${PROJECT_SOURCE_DIR})
 
 remove_definitions(-DNOMINMAX)
 
-set( SHADER_FILES dx11/DefaultVertexShader.hlsl
-                  dx11/DiffusePixelShader.hlsl
-                  dx11/ColorPixelShader.hlsl
-                  dx11/TexturePixelShader.hlsl
-                  dx11/Texture2PixelShader.hlsl )
-set( SHADER_INCLUDES )
+set(SHADER_FILES dx11/DefaultVertexShader.hlsl
+                 dx11/DiffusePixelShader.hlsl
+                 dx11/ColorPixelShader.hlsl
+                 dx11/TexturePixelShader.hlsl
+                 dx11/Texture2PixelShader.hlsl)
+set(SHADER_INCLUDES)
 
-foreach( SHADER_FILE ${SHADER_FILES} )
-  get_filename_component( FileName ${SHADER_FILE} NAME_WE )
+foreach(SHADER_FILE ${SHADER_FILES})
+  get_filename_component(FileName ${SHADER_FILE} NAME_WE)
   if(${FileName} MATCHES "(.+Vertex.+)")
     set(ShaderType vs)
   elseif(${FileName} MATCHES "(.+Pixel.+)")
@@ -21,8 +21,8 @@ foreach( SHADER_FILE ${SHADER_FILES} )
   else()
     message(FATAL_ERROR "Unknown shader type.")
   endif()
-  set( IncFile ${FileName}.inc )
-  list( APPEND SHADER_INCLUDES ${IncFile} )
+  set(IncFile ${FileName}.inc)
+  list(APPEND SHADER_INCLUDES ${IncFile})
 
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${IncFile}
@@ -37,13 +37,6 @@ set(SOURCES dx11/CommonStates.cpp
             dx11/DDSTextureLoader.cpp
             dx11/WICTextureLoader.cpp
             dx11/DX11Context.cpp
-            ns-eel2/nseel-caltab.c
-            ns-eel2/nseel-cfunc.c
-            ns-eel2/nseel-compiler.c
-            ns-eel2/nseel-eval.c
-            ns-eel2/nseel-lextab.c
-            ns-eel2/nseel-ram.c
-            ns-eel2/nseel-yylex.c
             vis_milk2/dxcontext.cpp
             vis_milk2/fft.cpp
             vis_milk2/milkdropfs.cpp
@@ -54,11 +47,7 @@ set(SOURCES dx11/CommonStates.cpp
             vis_milk2/texmgr.cpp
             vis_milk2/utility.cpp)
 
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(SOURCES ${SOURCES} 
-    ns-eel2/asm-nseel-x64.asm
-  )
-endif()
+add_subdirectory(ns-eel2)
 
 if(CORE_SYSTEM_NAME STREQUAL windowsstore)
   add_definitions(-D_WIN32_WINNT=0x0A00 -D_WINDOWS -D_CRT_NON_CONFORMING_SWPRINTFS)
@@ -69,3 +58,5 @@ endif()
 add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/permissive>)
 
 add_library(vis_milk2 STATIC ${SOURCES} ${SHADER_INCLUDES})
+
+target_link_libraries(vis_milk2 ns-eel2)
